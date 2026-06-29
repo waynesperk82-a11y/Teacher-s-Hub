@@ -1,0 +1,13 @@
+// src/navigation/types.ts
+export type RootStackParamList = {
+  Login: undefined
+  Main: undefined
+  LessonForm: { mode: 'create' | 'edit'; lessonId?: number }
+  LessonDetail: { lessonId: number }
+  ProgrammeForm: { mode: 'create' | 'edit'; programmeId?: number }
+  ProgrammeDetail: { programmeId: number }
+  TeacherForm: { mode: 'create' | 'edit'; teacherId?: number }
+  TeacherDetail: { teacherId: number }
+  UserManagement: undefined
+  PermissionManagement: { userId: number }
+}
