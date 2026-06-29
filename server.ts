@@ -559,6 +559,283 @@ app.delete('/api/messages/:id', (req, res) => {
   res.json({ message: 'Message deleted' })
 })
 
+// ==================== ATTENDANCE ENDPOINTS ====================
+
+app.get('/api/attendance', (req, res) => {
+  const lessonId = req.query.lessonId ? Number(req.query.lessonId) : undefined
+  const userId = req.query.userId ? Number(req.query.userId) : undefined
+  
+  let results = store.attendance || []
+  
+  if (lessonId) {
+    results = results.filter((a) => a.lessonId === lessonId)
+  }
+  if (userId) {
+    results = results.filter((a) => a.userId === userId)
+  }
+  
+  res.json(results)
+})
+
+app.get('/api/attendance/:id', (req, res) => {
+  const attendanceId = Number(req.params.id)
+  const attendance = (store.attendance || []).find((item) => item.id === attendanceId)
+  
+  if (!attendance) {
+    return res.status(404).json({ error: 'Attendance record not found' })
+  }
+  
+  res.json(attendance)
+})
+
+app.post('/api/attendance', (req, res) => {
+  const { lessonId, userId, status } = req.body
+  
+  if (!lessonId || !userId || !status) {
+    return res.status(400).json({ error: 'Lesson ID, user ID, and status are required' })
+  }
+  
+  if (!['present', 'absent', 'late'].includes(status)) {
+    return res.status(400).json({ error: 'Status must be present, absent, or late' })
+  }
+  
+  // Verify lesson exists
+  if (!store.lessons.some((lesson) => lesson.id === lessonId)) {
+    return res.status(404).json({ error: 'Lesson not found' })
+  }
+  
+  // Verify user exists
+  if (!store.users.some((user) => user.id === userId)) {
+    return res.status(404).json({ error: 'User not found' })
+  }
+  
+  if (!store.attendance) {
+    store.attendance = []
+  }
+  
+  // Check if attendance already exists for this lesson and user
+  const existingIndex = store.attendance.findIndex(
+    (a) => a.lessonId === lessonId && a.userId === userId
+  )
+  
+  let attendanceRecord
+  
+  if (existingIndex !== -1) {
+    // Update existing
+    store.attendance[existingIndex].status = status
+    store.attendance[existingIndex].timestamp = new Date().toISOString()
+    attendanceRecord = store.attendance[existingIndex]
+  } else {
+    // Create new
+    attendanceRecord = {
+      id: nextId(store.attendance),
+      lessonId,
+      userId,
+      status,
+      timestamp: new Date().toISOString()
+    }
+    store.attendance.push(attendanceRecord)
+  }
+  
+  store.analytics.totalAttendance = (store.analytics.totalAttendance || 0) + 1
+  saveDB(store)
+  
+  broadcastUpdate('attendanceUpdated', attendanceRecord)
+  res.status(201).json(attendanceRecord)
+})
+
+app.put('/api/attendance/:id', (req, res) => {
+  const attendanceId = Number(req.params.id)
+  const { status } = req.body
+  
+  if (!status) {
+    return res.status(400).json({ error: 'Status is required' })
+  }
+  
+  if (!['present', 'absent', 'late'].includes(status)) {
+    return res.status(400).json({ error: 'Status must be present, absent, or late' })
+  }
+  
+  if (!store.attendance) {
+    return res.status(404).json({ error: 'Attendance record not found' })
+  }
+  
+  const attendanceIndex = store.attendance.findIndex((item) => item.id === attendanceId)
+  
+  if (attendanceIndex === -1) {
+    return res.status(404).json({ error: 'Attendance record not found' })
+  }
+  
+  store.attendance[attendanceIndex].status = status
+  store.attendance[attendanceIndex].timestamp = new Date().toISOString()
+  saveDB(store)
+  
+  broadcastUpdate('attendanceUpdated', store.attendance[attendanceIndex])
+  res.json(store.attendance[attendanceIndex])
+})
+
+app.delete('/api/attendance/:id', (req, res) => {
+  const attendanceId = Number(req.params.id)
+  
+  if (!store.attendance) {
+    return res.status(404).json({ error: 'Attendance record not found' })
+  }
+  
+  const attendanceIndex = store.attendance.findIndex((item) => item.id === attendanceId)
+  
+  if (attendanceIndex === -1) {
+    return res.status(404).json({ error: 'Attendance record not found' })
+  }
+  
+  const attendance = store.attendance.splice(attendanceIndex, 1)[0]
+  store.analytics.totalAttendance = Math.max(0, (store.analytics.totalAttendance || 1) - 1)
+  saveDB(store)
+  
+  broadcastUpdate('attendanceRemoved', { id: attendanceId })
+  res.json({ message: 'Attendance record removed', attendance })
+})
+
+// Bulk attendance endpoints
+app.post('/api/attendance/bulk', (req, res) => {
+  const { records } = req.body
+  
+  if (!records || !Array.isArray(records) || records.length === 0) {
+    return res.status(400).json({ error: 'Records array is required' })
+  }
+  
+  if (!store.attendance) {
+    store.attendance = []
+  }
+  
+  const results = []
+  
+  for (const record of records) {
+    const { lessonId, userId, status } = record
+    
+    if (!lessonId || !userId || !status) {
+      continue // Skip invalid records
+    }
+    
+    if (!['present', 'absent', 'late'].includes(status)) {
+      continue // Skip invalid status
+    }
+    
+    // Check if attendance already exists
+    const existingIndex = store.attendance.findIndex(
+      (a) => a.lessonId === lessonId && a.userId === userId
+    )
+    
+    let attendanceRecord
+    
+    if (existingIndex !== -1) {
+      // Update existing
+      store.attendance[existingIndex].status = status
+      store.attendance[existingIndex].timestamp = new Date().toISOString()
+      attendanceRecord = store.attendance[existingIndex]
+    } else {
+      // Create new
+      attendanceRecord = {
+        id: nextId(store.attendance),
+        lessonId,
+        userId,
+        status,
+        timestamp: new Date().toISOString()
+      }
+      store.attendance.push(attendanceRecord)
+    }
+    
+    results.push(attendanceRecord)
+  }
+  
+  store.analytics.totalAttendance = (store.analytics.totalAttendance || 0) + results.length
+  saveDB(store)
+  
+  broadcastUpdate('attendanceBulkUpdated', { count: results.length })
+  res.status(201).json({ message: `${results.length} attendance records saved`, records: results })
+})
+
+// Get attendance statistics for a user
+app.get('/api/users/:id/attendance/stats', (req, res) => {
+  const userId = Number(req.params.id)
+  
+  if (!store.attendance) {
+    return res.json({
+      total: 0,
+      present: 0,
+      absent: 0,
+      late: 0,
+      attendanceRate: 0
+    })
+  }
+  
+  const userAttendance = store.attendance.filter((a) => a.userId === userId)
+  const total = userAttendance.length
+  
+  if (total === 0) {
+    return res.json({
+      total: 0,
+      present: 0,
+      absent: 0,
+      late: 0,
+      attendanceRate: 0
+    })
+  }
+  
+  const present = userAttendance.filter((a) => a.status === 'present').length
+  const absent = userAttendance.filter((a) => a.status === 'absent').length
+  const late = userAttendance.filter((a) => a.status === 'late').length
+  const attendanceRate = Math.round((present / total) * 100)
+  
+  res.json({
+    total,
+    present,
+    absent,
+    late,
+    attendanceRate
+  })
+})
+
+// Get attendance statistics for a lesson
+app.get('/api/lessons/:id/attendance/stats', (req, res) => {
+  const lessonId = Number(req.params.id)
+  
+  if (!store.attendance) {
+    return res.json({
+      total: 0,
+      present: 0,
+      absent: 0,
+      late: 0,
+      attendanceRate: 0
+    })
+  }
+  
+  const lessonAttendance = store.attendance.filter((a) => a.lessonId === lessonId)
+  const total = lessonAttendance.length
+  
+  if (total === 0) {
+    return res.json({
+      total: 0,
+      present: 0,
+      absent: 0,
+      late: 0,
+      attendanceRate: 0
+    })
+  }
+  
+  const present = lessonAttendance.filter((a) => a.status === 'present').length
+  const absent = lessonAttendance.filter((a) => a.status === 'absent').length
+  const late = lessonAttendance.filter((a) => a.status === 'late').length
+  const attendanceRate = Math.round((present / total) * 100)
+  
+  res.json({
+    total,
+    present,
+    absent,
+    late,
+    attendanceRate
+  })
+})
+
 // ==================== ANALYTICS ENDPOINTS ====================
 
 app.get('/api/analytics', (req, res) => {
@@ -566,6 +843,7 @@ app.get('/api/analytics', (req, res) => {
     ...store.analytics,
     totalUsers: store.users.length,
     totalMessages: (store.messages || []).length,
+    totalAttendance: (store.attendance || []).length,
     userBreakdown: {
       admin: store.users.filter(u => u.role === 'admin').length,
       teacher: store.users.filter(u => u.role === 'teacher').length,
@@ -624,9 +902,9 @@ app.get('/api/permissions', (req, res) => {
 const PORT = process.env.PORT || 4000
 
 httpServer.listen(PORT, () => {
-  console.log(` Server running on http://localhost:${PORT}`)
+  console.log(`Server running on http://localhost:${PORT}`)
   console.log(` API endpoints available at http://localhost:${PORT}/api`)
-  console.log(`🔌 WebSocket server running on ws://localhost:${PORT}`)
+  console.log(` WebSocket server running on ws://localhost:${PORT}`)
 })
 
 export { app, httpServer, io, store }
