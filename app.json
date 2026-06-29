@@ -6,18 +6,101 @@
     "sdkVersion": "54.0.0",
     "platforms": ["ios", "android", "web"],
     "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
     "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
       "backgroundColor": "#0f172a"
     },
     "updates": {
-      "fallbackToCacheTimeout": 0
+      "fallbackToCacheTimeout": 0,
+      "url": "https://u.expo.dev/your-project-id"
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.teachers.hub",
+      "buildNumber": "1.0.0",
+      "infoPlist": {
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": true
+        }
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0f172a"
+      },
+      "package": "com.teachers.hub",
+      "versionCode": 1,
+      "permissions": [
+        "android.permission.INTERNET",
+        "android.permission.ACCESS_NETWORK_STATE"
+      ]
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "name": "Teacher's Hub",
+      "shortName": "Teachers Hub",
+      "description": "School management and scheduling app for teachers",
+      "themeColor": "#0f172a",
+      "backgroundColor": "#0f172a",
+      "startUrl": "/",
+      "display": "standalone",
+      "orientation": "portrait",
+      "scope": "/",
+      "lang": "en",
+      "dir": "ltr"
+    },
+    "extra": {
+      "apiUrl": "http://localhost:4000/api",
+      "socketUrl": "http://localhost:4000",
+      "eas": {
+        "projectId": "your-project-id"
+      }
+    },
+    "plugins": [
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/Inter.ttf",
+            "./assets/fonts/Inter-Bold.ttf"
+          ]
+        }
+      ],
+      [
+        "expo-asset",
+        {
+          "assets": [
+            "./assets/images"
+          ]
+        }
+      ],
+      "expo-secure-store"
+    ],
+    "experiments": {
+      "tsconfigPaths": true
+    },
+    "developmentClient": {
+      "silentLaunch": false
+    },
+    "notification": {
+      "icon": "./assets/notification-icon.png",
+      "color": "#0f172a",
+      "androidMode": "default",
+      "androidCollapsedTitle": "Teacher's Hub"
+    },
+    "packagerOpts": {
+      "config": "metro.config.js",
+      "sourceExts": ["js", "jsx", "ts", "tsx", "json"]
+    },
+    "jsEngine": "hermes",
+    "newArchEnabled": false,
+    "runtimeVersion": {
+      "policy": "appVersion"
     }
   }
 }
