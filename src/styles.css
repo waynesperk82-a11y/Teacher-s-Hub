@@ -1,119 +1,213 @@
-:root {
-  color-scheme: light;
-  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: #f5f7fb;
-  color: #111827;
+import { StyleSheet, Platform, Dimensions } from 'react-native'
+
+const { width } = Dimensions.get('window')
+
+export const colors = {
+  primary: '#111827',
+  secondary: '#f5f7fb',
+  background: '#f5f7fb',
+  cardBackground: '#ffffff',
+  border: '#e5e7eb',
+  text: '#111827',
+  textSecondary: '#4b5563',
+  textLight: '#6b7280',
+  textMuted: '#6b7280',
+  accent: '#38bdf8',
+  success: '#10b981',
+  warning: '#f59e0b',
+  danger: '#ef4444',
+  info: '#3b82f6',
 }
 
-* {
-  box-sizing: border-box;
-}
+export const globalStyles = StyleSheet.create({
+  // App Shell
+  shell: {
+    flex: 1,
+    backgroundColor: colors.background,
+    paddingHorizontal: 20,
+    paddingVertical: 30,
+  },
 
-body {
-  margin: 0;
-  min-height: 100vh;
-  background: linear-gradient(180deg, #eef2ff 0%, #f8fafc 100%);
-}
+  // Header
+  header: {
+    marginBottom: 30,
+  },
+  headerTitle: {
+    fontSize: width < 768 ? 32 : 48,
+    fontWeight: '800',
+    color: colors.text,
+    marginBottom: 6,
+  },
+  headerSubtitle: {
+    fontSize: 16,
+    color: colors.textSecondary,
+    maxWidth: 680,
+  },
 
-button,
-input,
-select {
-  font: inherit;
-}
+  // Grid
+  mainGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 16,
+  },
 
-.app-shell {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 2rem 1.5rem 3rem;
-}
+  // Panel
+  panel: {
+    flex: 1,
+    minWidth: width < 900 ? '100%' : 300,
+    backgroundColor: colors.cardBackground,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 24,
+    padding: 20,
+    shadowColor: '#0f172a',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 20,
+    elevation: 4,
+  },
+  panelTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 12,
+  },
 
-header {
-  margin-bottom: 2rem;
-}
+  // Programme List
+  programmeList: {
+    gap: 12,
+  },
 
-header h1 {
-  font-size: clamp(2rem, 3vw, 3rem);
-  margin: 0 0 0.5rem;
-}
+  // Cards
+  card: {
+    padding: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 16,
+    backgroundColor: colors.secondary,
+    marginBottom: 12,
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 4,
+  },
+  cardMeta: {
+    fontSize: 14,
+    color: colors.textMuted,
+    marginTop: 8,
+  },
 
-header p {
-  margin: 0;
-  color: #4b5563;
-  max-width: 680px;
-}
+  // Programme specific
+  programmeCard: {
+    padding: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 16,
+    backgroundColor: colors.secondary,
+    marginBottom: 12,
+  },
+  programmeTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.accent,
+  },
+  programmeBody: {
+    fontSize: 14,
+    color: colors.text,
+    marginTop: 4,
+  },
+  meta: {
+    fontSize: 12,
+    color: colors.textMuted,
+    marginTop: 8,
+  },
+  empty: {
+    fontSize: 14,
+    color: colors.textMuted,
+    marginTop: 4,
+  },
 
-.main-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 1.5rem;
-}
+  // Teacher Controls
+  teacherControls: {
+    gap: 12,
+    marginBottom: 16,
+  },
+  controlLabel: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: colors.text,
+    marginBottom: 4,
+  },
+  select: {
+    width: '100%',
+    padding: 14,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 12,
+    backgroundColor: colors.cardBackground,
+    color: colors.text,
+    fontSize: 16,
+  },
+  input: {
+    width: '100%',
+    padding: 14,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 12,
+    backgroundColor: colors.cardBackground,
+    color: colors.text,
+    fontSize: 16,
+  },
 
-.panel {
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 24px;
-  padding: 1.5rem;
-  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.08);
-}
+  // Lesson card
+  lessonCard: {
+    padding: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 16,
+    backgroundColor: colors.secondary,
+    marginBottom: 12,
+  },
+  lessonTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text,
+  },
+  lessonBody: {
+    fontSize: 14,
+    color: colors.text,
+    marginTop: 4,
+  },
 
-.panel h2 {
-  margin-top: 0;
-}
-
-.programme-lists {
-  display: grid;
-  gap: 1rem;
-}
-
-.programme-card,
-.lesson-card {
-  padding: 1rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 16px;
-  background: #f8fafc;
-}
-
-.programme-card h4,
-.lesson-card strong {
-  margin: 0 0 0.5rem;
-  display: block;
-}
-
-.meta {
-  margin: 0.75rem 0 0;
-  color: #6b7280;
-  font-size: 0.95rem;
-}
-
-.empty {
-  margin: 0.5rem 0 0;
-  color: #6b7280;
-}
-
-.teacher-controls {
-  display: grid;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.teacher-controls label {
-  display: grid;
-  gap: 0.5rem;
-  font-weight: 600;
-}
-
-select,
-input[type='date'] {
-  width: 100%;
-  padding: 0.85rem 1rem;
-  border: 1px solid #d1d5db;
-  border-radius: 12px;
-  background: white;
-  color: #111827;
-}
-
-@media (max-width: 900px) {
-  .main-grid {
-    grid-template-columns: 1fr;
-  }
-}
+  // Utility
+  row: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  column: {
+    flexDirection: 'column',
+    gap: 8,
+  },
+  center: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  spaceBetween: {
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  mt: (amount: number) => ({ marginTop: amount }),
+  mb: (amount: number) => ({ marginBottom: amount }),
+  ml: (amount: number) => ({ marginLeft: amount }),
+  mr: (amount: number) => ({ marginRight: amount }),
+  mx: (amount: number) => ({ marginHorizontal: amount }),
+  my: (amount: number) => ({ marginVertical: amount }),
+  p: (amount: number) => ({ padding: amount }),
+  px: (amount: number) => ({ paddingHorizontal: amount }),
+  py: (amount: number) => ({ paddingVertical: amount }),
+})
